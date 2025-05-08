@@ -9,19 +9,32 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isAdminLogin, setIsAdminLogin] = useState(false); // State to toggle between employee and admin login
   const navigate = useNavigate(); // Hook for redirection
 
-  // Simulated user data
-  const [user, setUser] = useState({
-    email: "arvingeguna123@gmail.com",
-    password: "password123",
-  });
+  const handleLogin = async () => {
+    try {
+      const endpoint = isAdminLogin
+        ? "http://localhost:5000/api/admin/login"
+        : "http://localhost:5000/api/login"; // Different endpoint for admin login
 
-  const handleLogin = () => {
-    if (email === user.email && password === user.password) {
-      navigate("/dashboard"); // Redirect to Dashboard.js
-    } else {
-      setError("Invalid email or password!");
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        navigate(isAdminLogin ? "/admin-dashboard" : "/dashboard"); // Redirect based on login type
+      } else {
+        setError(data.message || "Invalid email or password!");
+      }
+    } catch (err) {
+      setError("Error connecting to server");
     }
   };
 
@@ -39,21 +52,21 @@ const Login = () => {
 
       {/* Centered Login Form */}
       <div className="login-container">
-        <img 
-          src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" 
-          alt="User Icon" 
-          className="user-icon" 
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+          alt="User Icon"
+          className="user-icon"
         />
-        <h2 className="login-title">Log In</h2>
+        <h2 className="login-title">{isAdminLogin ? "Admin Log In" : "Employee Log In"}</h2>
 
         {error && <p className="error-message">{error}</p>} {/* Display error message */}
 
         <div className="input-container">
           <label>Email Address</label>
-          <input 
-            type="email" 
-            placeholder="Enter email" 
-            value={email} 
+          <input
+            type="email"
+            placeholder="Enter email"
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
@@ -61,14 +74,14 @@ const Login = () => {
         {/* Password Input with Eye Icon */}
         <div className="input-container password-group">
           <label>Password</label>
-          <input 
-            type={passwordVisible ? "text" : "password"} 
-            placeholder="Enter password" 
-            value={password} 
+          <input
+            type={passwordVisible ? "text" : "password"}
+            placeholder="Enter password"
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <span 
-            className="eye-icon" 
+          <span
+            className="eye-icon"
             onClick={() => setPasswordVisible(!passwordVisible)}
           >
             {passwordVisible ? <FaEyeSlash /> : <FaEye />}
@@ -80,9 +93,31 @@ const Login = () => {
             <input type="checkbox" id="remember-me" />
             <label htmlFor="remember-me">Keep me logged in</label>
           </div>
-          <a onClick={handleForgotPassword} className="forgot-password">Forgot Password?</a>
+          <button onClick={handleForgotPassword} className="forgot-password">
+            Forgot Password?
+          </button>
         </div>
-        <button className="login-button" onClick={handleLogin}>Login</button>
+
+        <button className="login-button" onClick={handleLogin}>
+          {isAdminLogin ? "Admin Login" : "Employee Login"}
+        </button>
+
+        {/* Toggle between Employee and Admin Login */}
+        {!isAdminLogin ? (
+          <button
+            className="toggle-login-button"
+            onClick={() => setIsAdminLogin(true)}
+          >
+            Admin Login
+          </button>
+        ) : (
+          <button
+            className="toggle-login-button"
+            onClick={() => setIsAdminLogin(false)}
+          >
+            Back to Employee Login
+          </button>
+        )}
       </div>
     </div>
   );
